@@ -15,8 +15,11 @@ import (
 )
 
 var (
+	// CurrentConfig is what Knowbody currently sees as the config
+	// Think "State" but for the config
 	CurrentConfig Config
-	State         CurrentState
+	// State is... the current state.
+	State CurrentState
 )
 
 // Start starts the loop to look at all the things
@@ -64,11 +67,15 @@ func Start() {
 	}
 }
 
+// Lint simply reads the two primary files and ensures they can be parsed.
 func Lint() {
 	readYamlIntoConfig("conf.yaml", &CurrentConfig)
-	readYamlIntoConfig("knowbody.lock", &State)
+	readYamlIntoConfig("/tmp/knowbody.lock", &State)
 }
 
+// ReadConfig will attempt to download the master config from GitHub.
+// It then reads the current conf.yaml file on the file system and updates
+// all the internal data structures
 func ReadConfig() {
 	err := DownloadFile("conf.yaml", "https://raw.githubusercontent.com/jeefy/knowbody/master/conf.yaml")
 	if err != nil {
@@ -92,20 +99,24 @@ func ReadConfig() {
 	}
 }
 
+// WriteState takes the state and dumps it to /tmp/knowbody.lock
+// We like keeping track of state. This allows Knowbody to crash and recover without issue.
+// Because we're lazy goddammit.
 func WriteState() {
 	d, err := yaml.Marshal(&State)
 	if err != nil {
 		log.Fatalf("Error marshalling YAML: %s", err.Error())
 	}
 
-	err = ioutil.WriteFile("knowbody.lock", d, 0644)
+	err = ioutil.WriteFile("/tmp/knowbody.lock", d, 0644)
 	if err != nil {
 		log.Fatalf("Error writing state file: %s", err.Error())
 	}
 }
 
+// ReadState looks reads /tmp/knowbody.lock and pushes it into the State variable
 func ReadState() {
-	yamlFile, err := ioutil.ReadFile("knowbody.lock")
+	yamlFile, err := ioutil.ReadFile("/tmp/knowbody.lock")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}
@@ -115,6 +126,7 @@ func ReadState() {
 	}
 }
 
+// DownloadFile downloads files. Pretty simple.
 func DownloadFile(filepath string, url string) error {
 
 	// Get the data

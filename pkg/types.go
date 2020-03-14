@@ -18,7 +18,7 @@ type Config struct {
 
 // ContentStream is a mapping of rss-feed to slack channel
 type ContentStream struct {
-	Name    string `yaml:"name"`
+	Name    string `yaml:"name"`    // name of the stream. preferably unique.
 	URL     string `yaml:"url"`     // rss feed (https://twitrss.me/twitter_user_to_rss/?user=jeefy or https://danielmiessler.com/blog/rss-feed-youtube-channel/)
 	Channel string `yaml:"channel"` // slack channel in the workspace
 	Exclude string `yaml:"exclude"` // regex of content to exclude from this source cannot be set with include.

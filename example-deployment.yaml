@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowbody
+  labels:
+    app: knowbody
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: knowbody
+  template:
+    metadata:
+      labels:
+        app: knowbody
+    spec:
+      containers:
+      - name: knowbody
+        imagePullPolicy: Always
+        image: jeefy/knowbody:latest
+      volumes:
+        - name: knowbody-tmp
+          persistentVolumeClaim:
+              claimName: knowbody-tmp
