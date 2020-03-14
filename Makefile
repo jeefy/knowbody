@@ -1,6 +1,4 @@
 #!make
-include .env
-export $(shell sed 's/=.*//' .env)
 
 .PHONY: check run
 
@@ -13,7 +11,6 @@ test:
 	go test -v ./...
 
 run:
-	source .env
 	go run cmd/main.go
 
 build:
