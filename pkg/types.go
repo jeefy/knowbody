@@ -50,12 +50,14 @@ type CurrentState struct {
 func (stream *ContentStream) Process() {
 	fp := gofeed.NewParser()
 
-	feed, err := fp.ParseURL(fmt.Sprintf("%s&t=%v", stream.URL, time.Now().Unix()))
+	feedURL := fmt.Sprintf("%s&t=%v", stream.URL, time.Now().Unix())
+
+	feed, err := fp.ParseURL(feedURL)
 
 	if err != nil {
-		log.Printf("Error getting feed %s: %s", stream.URL, err.Error())
+		log.Printf("Error getting feed %s: %s", feedURL, err.Error())
 	} else {
-		log.Printf("Looping through feed from %s", stream.URL)
+		log.Printf("Looping through feed from %s", feedURL)
 		if feed != nil {
 			for i := len(feed.Items) - 1; i >= 0; i-- {
 				item := feed.Items[i]
