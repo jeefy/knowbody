@@ -1,6 +1,7 @@
 package knowbody
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"time"
@@ -48,7 +49,8 @@ type CurrentState struct {
 // Process will attempt to read and handle a specific ContentStream's RSS feed
 func (stream *ContentStream) Process() {
 	fp := gofeed.NewParser()
-	feed, err := fp.ParseURL(stream.URL)
+
+	feed, err := fp.ParseURL(fmt.Sprintf("%s&t=%v", stream.URL, time.Now().Unix()))
 
 	if err != nil {
 		log.Printf("Error getting feed %s: %s", stream.URL, err.Error())
