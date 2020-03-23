@@ -5,6 +5,8 @@ go 1.13
 require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195
+	github.com/dghubble/go-twitter v0.0.0-20190719072343-39e5462e111f
+	github.com/dghubble/oauth1 v0.6.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/mmcdole/gofeed v1.0.0-beta2
 	github.com/mmcdole/goxpp v0.0.0-20181012175147-0068e33feabf // indirect

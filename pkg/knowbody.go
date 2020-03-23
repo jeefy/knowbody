@@ -27,7 +27,38 @@ func Start() {
 	CurrentConfig.SlackToken = os.Getenv("SLACK_TOKEN")
 
 	State.Streams = make(map[string]ContentState)
-	State.Channels = make(map[string]string)
+	slackChannels := make(map[string]string)
+
+	c := make(chan Message)
+
+	slackClient := slack.New(CurrentConfig.SlackToken)
+	channels, err := slackClient.GetChannels(true)
+	if err != nil {
+		log.Fatalf("error getting slack channels: %s", err)
+	}
+
+	for _, channel := range channels {
+		slackChannels[channel.Name] = channel.ID
+	}
+
+	go func() {
+		for {
+			msg := <-c
+			if _, ok := slackChannels[msg.Channel]; !ok {
+				log.Printf("Channel '%s' does not exist on slack server.", msg.Channel)
+			} else {
+				if msg.Spoiler == true {
+					_, ts, postErr := State.slackClient.PostMessage(slackChannels[msg.Channel], slack.MsgOptionText(msg.Title, false))
+					if postErr != nil {
+						log.Printf("Error posting to spoiler reply thread in: %s", postErr.Error())
+					}
+					slackClient.PostMessage(slackChannels[msg.Channel], slack.MsgOptionText(msg.Link, false), slack.MsgOptionTS(ts))
+				} else {
+					slackClient.PostMessage(slackChannels[msg.Channel], slack.MsgOptionText(msg.Link, false))
+				}
+			}
+		}
+	}()
 
 	// Recover state from previous run
 	ReadState()
@@ -42,19 +73,8 @@ func Start() {
 		// Allow config changes between runs
 		ReadConfig()
 
-		State.slackClient = slack.New(CurrentConfig.SlackToken)
-
-		channels, err := State.slackClient.GetChannels(true)
-		if err != nil {
-			log.Fatalf("error getting slack channels: %s", err)
-		}
-
-		for _, channel := range channels {
-			State.Channels[channel.Name] = channel.ID
-		}
-
 		for _, contentStream := range CurrentConfig.Streams {
-			contentStream.Process()
+			contentStream.Process(c)
 		}
 
 		State.LastRun = time.Now()
@@ -77,9 +97,11 @@ func Lint() {
 // It then reads the current conf.yaml file on the file system and updates
 // all the internal data structures
 func ReadConfig() {
-	err := DownloadFile("conf.yaml", "https://raw.githubusercontent.com/jeefy/knowbody/master/conf.yaml")
-	if err != nil {
-		log.Printf("Error downloading updated config from Github: %s", err.Error())
+	if os.Getenv("SKIP_CONF_UPDATE") == "" {
+		err := DownloadFile("conf.yaml", "https://raw.githubusercontent.com/jeefy/knowbody/master/conf.yaml")
+		if err != nil {
+			log.Printf("Error downloading updated config from Github: %s", err.Error())
+		}
 	}
 
 	readYamlIntoConfig("conf.yaml", &CurrentConfig)
